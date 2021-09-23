@@ -118,7 +118,7 @@ QUIT:
 	fmt.Print("-> ")
 
 	quitInput, err := reader.ReadString('\n')
-	quitInput = strings.ReplaceAll(quitInput, "\n", "")
+	quitInput = strings.TrimSpace(quitInput)
 	if err != nil {
 		panic(err)
 	}
