@@ -36,7 +36,7 @@ START:
 		panic(err)
 	}
 
-	dirPath = path.Clean(dirInput)
+	dirPath = strings.TrimSpace(path.Clean(dirInput))
 
 	info, err = os.Stat(dirPath)
 
@@ -44,6 +44,7 @@ START:
 		fmt.Println("Given path does not exist.")
 		goto QUIT
 	} else if err != nil {
+		fmt.Println(dirInput)
 		panic(err)
 	}
 
@@ -57,23 +58,19 @@ START:
 	fmt.Print("-> ")
 
 	extInput, err = reader.ReadString('\n')
-	extInput = strings.ReplaceAll(extInput, "\n", "")
+	extInput = strings.TrimSpace(extInput)
 	if err != nil {
 		panic(err)
 	}
 
-	if strings.Contains(extInput, ".") {
-		ext = strings.ReplaceAll(extInput, ".", "")
-	} else {
-		ext = extInput
-	}
+	ext = strings.TrimPrefix(extInput, ".")
 
 	// Now, the new files name
 	fmt.Println("Now specify how the new files should be named (it will be used as: {name}{number}.{extension})")
 	fmt.Print("-> ")
 
 	nameInput, err = reader.ReadString('\n')
-	nameInput = strings.ReplaceAll(nameInput, "\n", "")
+	nameInput = strings.TrimSpace(nameInput)
 	if err != nil {
 		panic(err)
 	}
@@ -83,7 +80,7 @@ START:
 	fmt.Print("-> ")
 
 	numInput, err = reader.ReadString('\n')
-	numInput = strings.ReplaceAll(numInput, "\n", "")
+	numInput = strings.TrimSpace(numInput)
 	if err != nil {
 		panic(err)
 	}
@@ -100,9 +97,9 @@ START:
 	}
 
 	for _, f := range files {
-		if strings.HasSuffix(f.Name(), "." + ext) {
+		if strings.HasSuffix(f.Name(), "."+ext) {
 			oldName := path.Join(dirPath, f.Name())
-			newName := path.Join(dirPath, nameInput + strconv.Itoa(startNumber) + "." + ext)
+			newName := path.Join(dirPath, nameInput+strconv.Itoa(startNumber)+"."+ext)
 
 			err = os.Rename(oldName, newName)
 			if err != nil {
