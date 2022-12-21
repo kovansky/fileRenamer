@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,12 +13,17 @@ import (
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
-	var err error
-	var dirInput, extInput, nameInput, numInput string
-	var info os.FileInfo
-	var ext, dirPath string
-	var startNumber, renamed int
-	var files []os.FileInfo
+	var (
+		err                                     error
+		dirInput, extInput, nameInput, numInput string
+		info                                    os.FileInfo
+		ext, dirPath                            string
+		startNumber, renamed                    int
+		files                                   []os.FileInfo
+		mapping                                 = make(map[string]string)
+		mappingFile                             *os.File
+		jsonMapping                             []byte
+	)
 
 START:
 	renamed = 0
@@ -102,7 +108,11 @@ START:
 			newName := path.Join(dirPath, nameInput+strconv.Itoa(startNumber)+"."+ext)
 
 			err = os.Rename(oldName, newName)
+
+			mapping[oldName] = newName
+
 			if err != nil {
+				fmt.Println(fmt.Sprintf("Error while renaming file: %s", oldName))
 				fmt.Println("An error occurred after " + strconv.Itoa(renamed) + " files.")
 				panic(err)
 			}
@@ -112,6 +122,25 @@ START:
 	}
 
 	fmt.Println("Successfully renamed " + strconv.Itoa(renamed) + " files.")
+
+	// Write mapping to json file
+	mappingFile, err = os.Create(path.Join(dirPath, "rename-mapping.json"))
+	if err != nil {
+		fmt.Println("Could not create a rename-mapping.json file")
+		panic(err)
+	}
+
+	jsonMapping, err = json.Marshal(mapping)
+	if err != nil {
+		fmt.Println("Could not convert files mapping to json")
+		panic(err)
+	}
+
+	_, err = mappingFile.Write(jsonMapping)
+	if err != nil {
+		fmt.Println("Could not write mapping to json file")
+		panic(err)
+	}
 
 QUIT:
 	fmt.Println("Enter q to quit, any other key to start over.")
